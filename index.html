@@ -1,181 +1,1071 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Leaflet JS</title>
+    <title>WebGIS Kabupaten Flores Timur</title>
+
+    <!-- Google Fonts (Plus Jakarta Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Font Awesome (Dependency Awesome Markers) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Leaflet.awesome-markers CSS -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/leaflet.awesome-markers@2.0.5/dist/leaflet.awesome-markers.css">
+
     <style>
+        :root {
+            --brand-primary: #2563eb;
+            --brand-secondary: #0ea5e9;
+            --bg-glass: rgba(255, 255, 255, 0.88);
+            --border-glass: rgba(226, 232, 240, 0.85);
+            --shadow-glass: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         html,
-        body,
-        #map {
+        body {
             width: 100%;
             height: 100%;
             margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1e293b;
+            background-color: #0f172a;
+            overflow: hidden;
+        }
+
+        /* Modern Glassmorphism Navbar */
+        .navbar-custom {
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            height: 62px;
+            z-index: 1050;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .fs-xs {
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .custom-nav-link {
+            font-weight: 500;
+            color: #475569 !important;
+            padding: 0.45rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .custom-nav-link:hover {
+            color: #2563eb !important;
+            background: rgba(37, 99, 235, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-about {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff !important;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-about:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            color: #ffffff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        /* Map Container & Canvas */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 62px);
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Floating Zoom Action Tools (Sebelah Kiri Atas Peta) */
+        .map-zoom-tools {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Floating Quick Action Toolbar (Sebelah Kanan Atas Peta) */
+        .map-floating-tools {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            left: auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .map-tool-btn {
+            width: 38px;
+            height: 38px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .map-tool-btn:hover {
+            background: #ffffff;
+            color: #2563eb;
+            transform: scale(1.06);
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+        }
+
+        /* Floating Modern Legend (Sebelah Kiri Bawah, Tepat di Atas Scale Bar) */
+        .map-legend-card {
+            position: absolute;
+            bottom: 56px;
+            left: 12px;
+            right: auto;
+            z-index: 1000;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            box-shadow: var(--shadow-glass);
+            width: 240px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .map-legend-header {
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #0f172a;
+            border-bottom: 1px solid var(--border-glass);
+            background: rgba(248, 250, 252, 0.7);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .map-legend-body {
+            padding: 12px 14px;
+            font-size: 0.8rem;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .legend-color-box {
+            width: 18px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .legend-line {
+            width: 18px;
+            height: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-point {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Coordinates Bar */
+        .map-coord-bar {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            background: rgba(15, 23, 42, 0.8);
+            color: #f8fafc;
+            backdrop-filter: blur(8px);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            pointer-events: none;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        /* Leaflet Controls Styling - Kotak Persegi dengan Sudut Tumpul */
+        .leaflet-top.leaflet-right .leaflet-control-layers {
+            margin-top: 150px !important;
+            margin-right: 12px !important;
+        }
+
+        .leaflet-control-layers {
+            border-radius: 10px !important;
+            border: 1px solid var(--border-glass) !important;
+            background: var(--bg-glass) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+            padding: 0 !important;
+        }
+
+        .leaflet-control-layers.leaflet-control-layers-expanded {
+            padding: 10px 14px !important;
+            min-width: 175px !important;
+            border-radius: 12px !important;
+        }
+
+        @media (max-height: 650px) {
+            .map-tool-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.95rem;
+            }
+
+            .map-floating-tools,
+            .map-zoom-tools {
+                gap: 5px;
+            }
+
+            .leaflet-top.leaflet-right .leaflet-control-layers {
+                margin-top: 124px !important;
+            }
+        }
+
+        .leaflet-control-layers-toggle {
+            width: 38px !important;
+            height: 38px !important;
+            background-size: 20px 20px !important;
+            border-radius: 10px !important;
+            margin: 0 !important;
+        }
+
+        .leaflet-control-layers-base::before {
+            content: "BASEMAP";
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .leaflet-control-layers-overlays::before {
+            content: "OVERLAY";
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+            margin-top: 3px;
+            text-transform: uppercase;
+        }
+
+        .leaflet-control-layers-separator {
+            margin: 6px 0 !important;
+            border-top: 1px solid var(--border-glass) !important;
+        }
+
+        .leaflet-control-layers-base label,
+        .leaflet-control-layers-overlays label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #334155;
+            line-height: 1.2;
+            transition: color 0.15s ease;
+        }
+
+        .leaflet-control-layers-base label:hover,
+        .leaflet-control-layers-overlays label:hover {
+            color: #2563eb;
+        }
+
+        .leaflet-control-layers-base input,
+        .leaflet-control-layers-overlays input {
+            margin: 0 !important;
+            cursor: pointer;
+            accent-color: #2563eb;
+            transform: scale(0.9);
+        }
+
+        .layer-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.73rem;
+            color: inherit;
+        }
+
+        .layer-symbol-line {
+            display: inline-block;
+            width: 14px;
+            height: 3px;
+            background-color: red;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(239, 68, 68, 0.4);
+            flex-shrink: 0;
+        }
+
+        .layer-symbol-poly {
+            display: inline-block;
+            width: 13px;
+            height: 10px;
+            background: linear-gradient(135deg, #ffffb2 0%, #fd8d3c 50%, #bd0026 100%);
+            border: 1px solid #64748b;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        /* Scale Bar Styling - Jelas dan Terbaca */
+        .leaflet-control-scale {
+            margin-bottom: 12px !important;
+            margin-left: 12px !important;
+        }
+
+        .leaflet-control-scale-line {
+            background: rgba(255, 255, 255, 0.94) !important;
+            border: 2px solid #0f172a !important;
+            border-top: none !important;
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            font-size: 0.72rem !important;
+            line-height: 1.2 !important;
+            padding: 2px 6px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+            border-radius: 0 0 3px 3px !important;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Leaflet Popups & Tooltips */
+        .leaflet-popup-content-wrapper {
+            border-radius: 14px !important;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18) !important;
+            padding: 4px !important;
+            border: 1px solid var(--border-glass) !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 8px 10px !important;
+            font-family: inherit !important;
+            font-size: 0.85rem !important;
+            line-height: 1.5 !important;
+        }
+
+        .leaflet-popup-tip {
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18) !important;
+        }
+
+        /* Modal About Enhancements */
+        .modal-content {
+            border-radius: 18px;
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .modal-header-gradient {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #ffffff;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .student-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            margin: 0 auto 12px;
         }
     </style>
 </head>
 
 <body>
-    <div id="map"></div>
 
+    <!-- Modern Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container-fluid px-3 px-lg-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <div class="brand-icon d-flex align-items-center justify-content-center">
+                    <i class="bi bi-geo-alt-fill text-white fs-5"></i>
+                </div>
+                <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold tracking-tight text-dark">WebGIS</span>
+                        <span
+                            class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fs-xs">Flores
+                            Timur</span>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.7rem; margin-top: -3px;">Sistem Informasi Geografis
+                        Kependudukan</small>
+                </div>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-1 mt-2 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link custom-nav-link"
+                            href="https://github.com/chelseakiraniaputriarintaka-code/pgweb-acara5" target="_blank">
+                            <i class="bi bi-link-45deg me-1"></i> Link
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link custom-nav-link btn-about px-3" href="#" data-bs-toggle="modal"
+                            data-bs-target="#aboutModal">
+                            <i class="bi bi-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Map Container -->
+    <div class="map-container">
+        <!-- Floating Zoom Action Tools (Sebelah Kiri Atas Peta) -->
+        <div class="map-zoom-tools">
+            <button class="map-tool-btn" id="btnZoomIn" title="Perbesar Peta (Zoom In)" aria-label="Zoom In">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button class="map-tool-btn" id="btnZoomOut" title="Perkecil Peta (Zoom Out)" aria-label="Zoom Out">
+                <i class="bi bi-dash-lg"></i>
+            </button>
+        </div>
+
+        <!-- Floating Quick Action Tools (Sebelah Kanan Atas Peta) -->
+        <div class="map-floating-tools">
+            <button class="map-tool-btn" id="btnHome" title="Reset Tampilan Peta" aria-label="Reset View">
+                <i class="bi bi-house-door-fill"></i>
+            </button>
+            <button class="map-tool-btn" id="btnFit" title="Fokuskan ke Wilayah Flores Timur" aria-label="Fit Bounds">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+            <button class="map-tool-btn" id="btnToggleLegend" title="Tampilkan/Sembunyikan Legenda"
+                aria-label="Toggle Legend">
+                <i class="bi bi-layers-half"></i>
+            </button>
+        </div>
+
+        <!-- Floating Thematic Legend (Sebelah Kiri Bawah di Atas Scale Bar) -->
+        <div class="map-legend-card" id="mapLegend">
+            <div class="map-legend-header" id="legendHeader">
+                <span><i class="bi bi-palette-fill text-primary me-2"></i>Legenda Peta</span>
+                <i class="bi bi-chevron-down" id="legendToggleIcon"></i>
+            </div>
+            <div class="map-legend-body" id="legendBody">
+                <div class="text-uppercase fw-bold text-muted mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                    Tematik Jumlah Penduduk</div>
+                <div class="legend-item">
+                    <span class="legend-color-box" style="background-color: #bd0026;"></span>
+                    <span>> 24.000 Jiwa (Tinggi)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color-box" style="background-color: #fd8d3c;"></span>
+                    <span>12.000 - 24.000 Jiwa (Sedang)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color-box" style="background-color: #ffffb2;"></span>
+                    <span>≤ 12.000 Jiwa (Rendah)</span>
+                </div>
+
+                <div class="text-uppercase fw-bold text-muted mt-3 mb-2"
+                    style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                    Infrastruktur Jalan (NAMA_UNSUR)</div>
+                <div class="legend-item">
+                    <span class="legend-line" style="background-color: red; height: 3.5px;"></span>
+                    <span>Jalan Provinsi (Solid, 3.5)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-line" style="border-top: 2px dashed red; height: 0;"></span>
+                    <span>Jalan Kabupaten (Putus Panjang, 2)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-line" style="border-top: 1px dotted red; height: 0;"></span>
+                    <span>Jalan Lain (Putus Pendek, 1)</span>
+                </div>
+
+                <div class="text-uppercase fw-bold text-muted mt-3 mb-2"
+                    style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                    Toponimi (Awesome Markers)</div>
+                <div class="legend-item">
+                    <span class="legend-point text-danger"><i class="fa fa-mountain"></i></span>
+                    <span>Gunung (Merah)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-point text-primary"><i class="fa fa-anchor"></i></span>
+                    <span>Tanjung (Biru)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-point" style="color: #436976;"><i class="fa fa-water"></i></span>
+                    <span>Teluk (Cadetblue)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-point text-warning"><i class="fa fa-map-pin"></i></span>
+                    <span>Toponimi Lain (Oranye)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Coordinate Indicator -->
+        <div class="map-coord-bar" id="coordDisplay">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i>Arahkan kursor pada peta untuk koordinat
+        </div>
+
+        <!-- Map Canvas Element -->
+        <div id="map"></div>
+    </div>
+
+    <!-- Modal About -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header modal-header-gradient border-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-badge fs-4 text-info"></i>
+                        <h5 class="modal-title fw-bold mb-0" id="aboutModalLabel">About</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="student-avatar">CK</div>
+                        <h5 class="fw-bold mb-1 text-dark">Chelsea Kirania Putri Arintaka</h5>
+                        <span
+                            class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">Praktikum
+                            Pemrograman Spasial Web</span>
+                    </div>
+
+                    <div class="card bg-light border-0 rounded-3 p-3">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <th scope="row" class="text-secondary ps-0" style="width: 25%;"><i
+                                            class="bi bi-person me-2 text-primary"></i>Nama</th>
+                                    <td class="fw-semibold text-dark">: Chelsea Kirania Putri Arintaka</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="text-secondary ps-0"><i
+                                            class="bi bi-card-heading me-2 text-primary"></i>NIM</th>
+                                    <td class="fw-semibold text-dark">: 25/557897/SV/26251</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="text-secondary ps-0"><i
+                                            class="bi bi-mortarboard me-2 text-primary"></i>Kelas</th>
+                                    <td class="fw-semibold text-dark">: PGWEB</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light-subtle py-2">
+                    <button type="button" class="btn btn-secondary btn-sm px-3 rounded-pill"
+                        data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Kependudukan (Tampilan Senada dengan Modal About) -->
+    <div class="modal fade" id="pendudukModal" tabindex="-1" aria-labelledby="pendudukModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header modal-header-gradient border-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-building fs-4 text-info"></i>
+                        <h5 class="modal-title fw-bold mb-0" id="pendudukModalLabel">Detail Kecamatan</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="pendudukModalBody">
+                    <!-- Dinamis terisi saat poligon kecamatan diklik -->
+                </div>
+                <div class="modal-footer border-0 bg-light-subtle py-2">
+                    <button type="button" class="btn btn-secondary btn-sm px-3 rounded-pill"
+                        data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script>
-        // Inisialisasi peta
-        var map = L.map("map").setView([-8.3134426, 123.1649780], 11);
+    <!-- Leaflet.awesome-markers JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.awesome-markers@2.0.5/dist/leaflet.awesome-markers.js"></script>
 
-        // Tile Layer Base Map
-        var basemap = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution:
-                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    <script>
+        // Inisialisasi peta dengan menonaktifkan zoom control default (zoomControl: false)
+        var initialCenter = [-8.3134426, 123.1649780];
+        var initialZoom = 11;
+        var map = L.map("map", {
+            zoomControl: false
+        }).setView(initialCenter, initialZoom);
+
+        // Membuat map panes untuk layer jalan dan jumlah_penduduk
+        map.createPane('jalan');
+        map.getPane('jalan').style.zIndex = 400;
+
+        map.createPane('jumlah_penduduk');
+        map.getPane('jumlah_penduduk').style.zIndex = 300;
+
+        // Tile Layers Base Map
+        var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         });
 
-        // Menambahkan basemap ke dalam peta
-        basemap.addTo(map);
+        var esriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+
+        var cartoPositron = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+        });
+
+        // Menambahkan basemap default
+        osm.addTo(map);
+
+        // Menambahkan Scale Bar (Skala Peta Metrik dan Imperial)
+        var scale = L.control.scale({
+            position: "bottomleft",
+            maxWidth: 180,
+            metric: true,
+            imperial: true
+        });
+        scale.addTo(map);
 
         // =========================================================================
-        // 1. GeoJSON Point Toponimi
+        // 1. GeoJSON Point Toponimi (Leaflet.awesome-markers berdasarkan NAMA_UNSUR)
         // =========================================================================
         var toponimi = L.geoJSON(null, {
-            // Style
             pointToLayer: function (feature, latlng) {
-                return L.marker(latlng, {
-                    icon: L.icon({
-                        iconUrl: "images/home_marker.png", // icon marker
-                        iconSize: [48, 48], // ukuran icon
-                        iconAnchor: [24, 48], // posisi icon terhadap titik (point)
-                        popupAnchor: [0, -48], // posisi popup terhadap icon
-                        tooltipAnchor: [-16, -30], // posisi tooltip terhadap icon
-                    }),
-                });
-            },
-            // onEachFeature
-            onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "<img src='images/" + feature.properties.image + "' alt='' width='200'>" + "<br>" +
-                    "Nama: " + feature.properties.TOPONIMI + "<br>" +
-                    "Koordinat: " + feature.geometry.coordinates[1] + ", " + feature.geometry.coordinates[0] + "<br>";
+                var unsur = feature.properties.NAMA_UNSUR ? feature.properties.NAMA_UNSUR.toLowerCase() : "";
+                var awesomeIcon;
 
-                // PERBAIKAN: Langsung bind popup ke layer
+                if (unsur.includes("gunung")) {
+                    awesomeIcon = L.AwesomeMarkers.icon({
+                        icon: 'mountain',
+                        prefix: 'fa',
+                        markerColor: 'red',
+                        iconColor: 'white'
+                    });
+                } else if (unsur.includes("tanjung")) {
+                    awesomeIcon = L.AwesomeMarkers.icon({
+                        icon: 'anchor',
+                        prefix: 'fa',
+                        markerColor: 'blue',
+                        iconColor: 'white'
+                    });
+                } else if (unsur.includes("teluk")) {
+                    awesomeIcon = L.AwesomeMarkers.icon({
+                        icon: 'water',
+                        prefix: 'fa',
+                        markerColor: 'cadetblue',
+                        iconColor: 'white'
+                    });
+                } else {
+                    awesomeIcon = L.AwesomeMarkers.icon({
+                        icon: 'map-pin',
+                        prefix: 'fa',
+                        markerColor: 'orange',
+                        iconColor: 'white'
+                    });
+                }
+
+                return L.marker(latlng, { icon: awesomeIcon });
+            },
+            onEachFeature: function (feature, layer) {
+                var imgPath = feature.properties.image ? ("images/" + feature.properties.image) : "";
+                var unsur = feature.properties.NAMA_UNSUR ? feature.properties.NAMA_UNSUR.toLowerCase() : "";
+                var badgeClass = "bg-warning-subtle text-dark border";
+                if (unsur.includes("gunung")) badgeClass = "bg-danger-subtle text-danger border border-danger-subtle";
+                else if (unsur.includes("tanjung")) badgeClass = "bg-primary-subtle text-primary border border-primary-subtle";
+                else if (unsur.includes("teluk")) badgeClass = "bg-info-subtle text-info border border-info-subtle";
+
+                var popup_content = `
+                    <div class="card border-0 shadow-none" style="width: 220px;">
+                        ${imgPath ? `<img src="${imgPath}" class="card-img-top rounded-3 mb-2 shadow-sm" alt="${feature.properties.TOPONIMI}" style="height: 125px; object-fit: cover; width: 100%;">` : ''}
+                        <div class="card-body p-0">
+                            <span class="badge ${badgeClass} mb-1"><i class="bi bi-geo-alt-fill me-1"></i>${feature.properties.NAMA_UNSUR || "Toponimi"}</span>
+                            <h6 class="fw-bold mb-1 text-dark">${feature.properties.TOPONIMI}</h6>
+                            <p class="small text-secondary mb-0"><i class="bi bi-compass me-1"></i>${feature.geometry.coordinates[1].toFixed(5)}, ${feature.geometry.coordinates[0].toFixed(5)}</p>
+                        </div>
+                    </div>
+                `;
                 layer.bindPopup(popup_content);
 
-                // PERBAIKAN: Tooltip menggunakan layer, bukan variabel toponimi
                 layer.on({
                     mouseover: function (e) {
-                        layer.bindTooltip(feature.properties.TOPONIMI, {
-                            direction: "left",
+                        layer.bindTooltip(`<strong>${feature.properties.TOPONIMI}</strong><br><small class='text-muted'>${feature.properties.NAMA_UNSUR}</small>`, {
+                            direction: "top",
                             sticky: true,
-                        });
+                        }).openTooltip();
                     },
                 });
             },
         });
 
         $.getJSON("GeoJSON/toponimi.geojson", function (data) {
-            toponimi.addData(data); // Menambahkan data ke dalam GeoJSON
-            map.addLayer(toponimi); // Menambahkan GeoJSON ke dalam peta
+            toponimi.addData(data);
+            map.addLayer(toponimi);
         });
 
         // =========================================================================
-        // 2. GeoJSON Polyline Jalan
+        // 2. GeoJSON Polyline Jalan (Berdasarkan Field NAMA_UNSUR)
         // =========================================================================
         var jalan = L.geoJSON(null, {
-            // Style
+            pane: 'jalan',
             style: function (feature) {
-                return {
-                    color: "red",
-                    opacity: 1,
-                    weight: 3,
-                };
-            },
-            // onEachFeature
-            onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "Fungsi: " + feature.properties.NAMA_UNSUR + "<br>" +
-                    "Panjang (km): " + feature.properties.panjang_km;
+                var unsur = feature.properties.NAMA_UNSUR ? feature.properties.NAMA_UNSUR.toLowerCase() : "";
 
-                // PERBAIKAN: Langsung bind popup ke layer
+                // Jalan Provinsi: warna merah, tebal 3.5, garis penuh (solid)
+                if (unsur.includes("provinsi")) {
+                    return {
+                        color: "red",
+                        opacity: 0.9,
+                        weight: 3.5,
+                        dashArray: null
+                    };
+                }
+                // Jalan Kabupaten: warna merah, tebal 2, garis putus-putus panjang
+                else if (unsur.includes("kabupaten")) {
+                    return {
+                        color: "red",
+                        opacity: 0.9,
+                        weight: 2,
+                        dashArray: "15, 10"
+                    };
+                }
+                // Jalan Lain: warna merah, tebal 1, garis putus-putus pendek
+                else {
+                    return {
+                        color: "red",
+                        opacity: 0.8,
+                        weight: 1,
+                        dashArray: "5, 5"
+                    };
+                }
+            },
+            onEachFeature: function (feature, layer) {
+                var popup_content = `
+                    <div class="p-1" style="min-width: 180px;">
+                        <span class="badge bg-danger-subtle text-danger mb-1"><i class="bi bi-bezier2 me-1"></i>Jalan</span>
+                        <h6 class="fw-bold mb-1 text-dark">${feature.properties.NAMA_UNSUR || "Jaringan Jalan"}</h6>
+                        <hr class="my-1">
+                        <div class="small text-secondary"><i class="bi bi-rulers me-1 text-danger"></i>Panjang: <strong class="text-dark">${feature.properties.panjang_km || "-"} km</strong></div>
+                    </div>
+                `;
                 layer.bindPopup(popup_content);
 
-                // PERBAIKAN: Tooltip menggunakan layer
                 layer.on({
                     mouseover: function (e) {
+                        var l = e.target;
+                        l.setStyle({ weight: 5, color: '#dc2626' });
                         layer.bindTooltip(feature.properties.NAMA_UNSUR, {
                             direction: "auto",
                             sticky: true,
-                        });
+                        }).openTooltip();
                     },
+                    mouseout: function (e) {
+                        jalan.resetStyle(e.target);
+                    }
                 });
             },
         });
-        
+
         $.getJSON("GeoJSON/jalan.geojson", function (data) {
-            jalan.addData(data); 
-            map.addLayer(jalan); 
+            jalan.addData(data);
+            map.addLayer(jalan);
         });
 
         // =========================================================================
         // 3. GeoJSON Polygon Jumlah Penduduk
         // =========================================================================
         var jumlah_penduduk = L.geoJSON(null, {
-            // Style
+            pane: 'jumlah_penduduk',
             style: function (feature) {
-                if (feature.properties.Penduduk <= 12000) {
-                    return { opacity: 1, color: 'black', weight: 1.0, fillOpacity: 0.7, fillColor: '#ffffb2' };
-                }
-                if (feature.properties.Penduduk > 12000 && feature.properties.Penduduk <= 24000) {
-                    return { opacity: 1, color: 'black', weight: 1.0, fillOpacity: 0.7, fillColor: '#fd8d3c' };
-                }
-                if (feature.properties.Penduduk > 24000) {
-                    return { opacity: 1, color: 'black', weight: 1.0, fillOpacity: 0.7, fillColor: '#bd0026' };
+                var p = feature.properties.Penduduk;
+                if (p <= 12000) {
+                    return { opacity: 1, color: '#475569', weight: 1.2, fillOpacity: 0.75, fillColor: '#ffffb2' };
+                } else if (p > 12000 && p <= 24000) {
+                    return { opacity: 1, color: '#475569', weight: 1.2, fillOpacity: 0.75, fillColor: '#fd8d3c' };
+                } else {
+                    return { opacity: 1, color: '#475569', weight: 1.2, fillOpacity: 0.75, fillColor: '#bd0026' };
                 }
             },
-            
-            // onEachFeature (Sudah dibersihkan dari duplikasi)
             onEachFeature: function (feature, layer) {
-                var popup_content = "Kecamatan: " + feature.properties.WADMKC + "<br>" +
-                    "Jumlah Penduduk: " + feature.properties.Penduduk;
+                var p = feature.properties;
 
-                // PERBAIKAN: Langsung bind popup ke layer
-                layer.bindPopup(popup_content);
-
-                // PERBAIKAN: Tooltip menggunakan layer dan toString()
                 layer.on({
+                    click: function (e) {
+                        var pop = p.Penduduk || 0;
+                        var luas = p.luas_km2 || 0;
+                        var kepadatan = (luas > 0) ? (pop / luas).toFixed(1) : "-";
+
+                        var badgeClass = "";
+                        var kategoriText = "";
+                        if (pop <= 12000) {
+                            badgeClass = "bg-warning-subtle text-dark border-warning-subtle";
+                            kategoriText = "Tingkat Kepadatan Rendah (≤ 12.000 Jiwa)";
+                        } else if (pop > 12000 && pop <= 24000) {
+                            badgeClass = "bg-warning text-dark";
+                            kategoriText = "Tingkat Kepadatan Sedang (12.000 - 24.000 Jiwa)";
+                        } else {
+                            badgeClass = "bg-danger text-white";
+                            kategoriText = "Tingkat Kepadatan Tinggi (> 24.000 Jiwa)";
+                        }
+
+                        document.getElementById("pendudukModalLabel").innerHTML = `<i class="bi bi-building text-info me-2"></i>Kecamatan ${p.WADMKC}`;
+                        document.getElementById("pendudukModalBody").innerHTML = `
+                            <div class="text-center mb-4">
+                                <div class="d-inline-flex align-items-center justify-content-center mb-2" style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #0ea5e9); color: white; font-size: 1.6rem; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1 text-dark">Kecamatan ${p.WADMKC}</h4>
+                                <span class="badge ${badgeClass} border px-3 py-1 fs-xs rounded-pill">${kategoriText}</span>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="p-3 border rounded-3 text-center bg-light">
+                                        <small class="text-secondary d-block mb-1"><i class="bi bi-people-fill text-primary me-1"></i>Penduduk</small>
+                                        <span class="fw-bold fs-5 text-dark">${Number(pop).toLocaleString('id-ID')}</span> <small class="text-muted">Jiwa</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 border rounded-3 text-center bg-light">
+                                        <small class="text-secondary d-block mb-1"><i class="bi bi-bounding-box text-success me-1"></i>Luas Wilayah</small>
+                                        <span class="fw-bold fs-5 text-dark">${luas ? Number(luas).toFixed(2) : '-'}</span> <small class="text-muted">km²</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-light border-0 rounded-3 p-3">
+                                <table class="table table-borderless mb-0">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row" class="text-secondary ps-0" style="width: 35%;"><i class="bi bi-building me-2 text-primary"></i>Kecamatan</th>
+                                            <td class="fw-semibold text-dark">: ${p.WADMKC || '-'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="text-secondary ps-0"><i class="bi bi-map me-2 text-primary"></i>Kabupaten</th>
+                                            <td class="fw-semibold text-dark">: ${p.WADMKK || 'Flores Timur'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="text-secondary ps-0"><i class="bi bi-globe me-2 text-primary"></i>Provinsi</th>
+                                            <td class="fw-semibold text-dark">: ${p.WADMPR || 'Nusa Tenggara Timur'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row" class="text-secondary ps-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Kepadatan</th>
+                                            <td class="fw-semibold text-dark">: ${kepadatan} Jiwa/km²</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+
+                        var modalPenduduk = bootstrap.Modal.getOrCreateInstance(document.getElementById('pendudukModal'));
+                        modalPenduduk.show();
+                    },
                     mouseover: function (e) {
-                        layer.bindTooltip(feature.properties.Penduduk.toString(), {
+                        var l = e.target;
+                        l.setStyle({
+                            weight: 2.5,
+                            color: '#2563eb',
+                            fillOpacity: 0.9
+                        });
+                        l.bringToFront();
+                        toponimi.bringToFront();
+
+                        layer.bindTooltip(`<strong>Kec. ${feature.properties.WADMKC}</strong><br>${Number(feature.properties.Penduduk).toLocaleString('id-ID')} Jiwa`, {
                             direction: "auto",
                             sticky: true,
-                        });
+                        }).openTooltip();
                     },
+                    mouseout: function (e) {
+                        jumlah_penduduk.resetStyle(e.target);
+                    }
                 });
             },
         });
 
         $.getJSON("GeoJSON/jml_pddk.geojson", function (data) {
             jumlah_penduduk.addData(data);
-            map.addLayer(jumlah_penduduk); 
+            map.addLayer(jumlah_penduduk);
         });
 
-        // Control Layer
+        // =========================================================================
+        // Layer Control dengan Ilustrasi (Ringkas & Proporsional)
+        // =========================================================================
         var baseMaps = {
-            "OpenStreetMap": basemap,
+            '<span class="layer-item"><i class="bi bi-map-fill text-primary"></i> OSM</span>': osm,
+            '<span class="layer-item"><i class="bi bi-globe-americas text-success"></i> Satelit</span>': esriSat,
+            '<span class="layer-item"><i class="bi bi-sun-fill text-warning"></i> Carto</span>': cartoPositron
         };
 
-        // PERBAIKAN: Gunakan nama variabel GeoJSON yang sudah Anda buat sebelumnya
         var overlayMaps = {
-            "Toponimi": toponimi,           // Sebelumnya: marker
-            "Jalan": jalan,                 // Sebelumnya: circle
-            "Jumlah Penduduk": jumlah_penduduk, // Sebelumnya: polyline
+            '<span class="layer-item"><img src="images/home_marker.png" width="13" height="13" alt="Marker" style="vertical-align:middle;"> Toponimi</span>': toponimi,
+            '<span class="layer-item"><span class="layer-symbol-line"></span> Jalan</span>': jalan,
+            '<span class="layer-item"><span class="layer-symbol-poly"></span> Penduduk</span>': jumlah_penduduk,
         };
 
-        var controllayer = L.control.layers(baseMaps, overlayMaps);
+        var controllayer = L.control.layers(baseMaps, overlayMaps, { position: "topright" });
         controllayer.addTo(map);
 
+        // =========================================================================
+        // Floating Toolbar & Interactive Actions
+        // =========================================================================
+        [
+            document.getElementById("btnZoomIn"),
+            document.getElementById("btnZoomOut"),
+            document.getElementById("btnHome"),
+            document.getElementById("btnFit"),
+            document.getElementById("btnToggleLegend"),
+            document.getElementById("mapLegend")
+        ].forEach(function (el) {
+            if (el) {
+                L.DomEvent.disableClickPropagation(el);
+                L.DomEvent.disableScrollPropagation(el);
+            }
+        });
+
+        document.getElementById("btnZoomIn").addEventListener("click", function () {
+            map.zoomIn();
+        });
+
+        document.getElementById("btnZoomOut").addEventListener("click", function () {
+            map.zoomOut();
+        });
+
+        document.getElementById("btnHome").addEventListener("click", function () {
+            map.setView(initialCenter, initialZoom);
+        });
+
+        document.getElementById("btnFit").addEventListener("click", function () {
+            if (jumlah_penduduk.getLayers().length > 0) {
+                map.fitBounds(jumlah_penduduk.getBounds(), { padding: [30, 30] });
+            } else {
+                map.setView(initialCenter, initialZoom);
+            }
+        });
+
+        var legendBody = document.getElementById("legendBody");
+        var legendToggleIcon = document.getElementById("legendToggleIcon");
+        var isLegendCollapsed = false;
+
+        function toggleLegend() {
+            isLegendCollapsed = !isLegendCollapsed;
+            if (isLegendCollapsed) {
+                legendBody.style.display = "none";
+                legendToggleIcon.className = "bi bi-chevron-up";
+            } else {
+                legendBody.style.display = "block";
+                legendToggleIcon.className = "bi bi-chevron-down";
+            }
+        }
+
+        document.getElementById("legendHeader").addEventListener("click", toggleLegend);
+        document.getElementById("btnToggleLegend").addEventListener("click", toggleLegend);
+
+        // Pelacak koordinat kursor dinamis
+        map.on("mousemove", function (e) {
+            document.getElementById("coordDisplay").innerHTML =
+                `<i class="bi bi-geo-alt-fill text-danger me-1"></i>Lat: ${e.latlng.lat.toFixed(5)} &nbsp;|&nbsp; Lng: ${e.latlng.lng.toFixed(5)} &nbsp;|&nbsp; Zoom: ${map.getZoom()}`;
+        });
     </script>
 </body>
 
