@@ -812,11 +812,11 @@
             style: function (feature) {
                 var unsur = feature.properties.NAMA_UNSUR ? feature.properties.NAMA_UNSUR.toLowerCase() : "";
 
-                // Jalan Provinsi: warna merah, tebal 3.5, garis penuh (solid)
-                if (unsur.includes("provinsi")) {
+                // Jalan Provinsi (atau Jalan Propinsi): warna merah, tebal 3.5, garis solid
+                if (unsur.includes("provinsi") || unsur.includes("propinsi")) {
                     return {
                         color: "red",
-                        opacity: 0.9,
+                        opacity: 0.95,
                         weight: 3.5,
                         dashArray: null
                     };
@@ -834,7 +834,7 @@
                 else {
                     return {
                         color: "red",
-                        opacity: 0.8,
+                        opacity: 0.85,
                         weight: 1,
                         dashArray: "5, 5"
                     };
